@@ -2,7 +2,6 @@
 using ArBackup.Application.BusinessLogic.Commands;
 using ArBackup.Data.Extensions;
 using CommandLine;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 

@@ -1,20 +1,16 @@
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using ArBackup.Application.BusinessLogic.Commands;
 
 namespace ArBackup.Application;
 
 public static class ServiceCollectionExtensions
 {
-    extension(IServiceCollection services)
+    public static IServiceCollection AddApplicationLayer(this IServiceCollection services)
     {
-        public IServiceCollection AddApplicationLayer()
-        {
-            services.AddMediatR(config =>
-            {
-                config.RegisterServicesFromAssembly(typeof(ServiceCollectionExtensions).Assembly);
-            });
-            
-            return services;
-        }
+        services.AddSingleton<IMediator, Mediator>();
+
+        services.AddTransient<ICommandHandler<UploadFile.Command>, UploadFile.Handler>();
+
+        return services;
     }
 }
