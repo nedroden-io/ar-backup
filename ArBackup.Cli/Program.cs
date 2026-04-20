@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ArBackup.Application.Mediator;
 using Ardalis.Result;
+using Microsoft.Extensions.Logging;
 
 namespace ArBackup;
 
@@ -14,6 +15,8 @@ internal static class Program
     private static async Task Main(string[] args)
     {
         var builder = Host.CreateApplicationBuilder(args);
+
+        builder.Logging.AddSimpleConsole(c => c.SingleLine = true);
 
         builder.Services.AddApplicationLayer();
         builder.Services.AddDataLayer();
