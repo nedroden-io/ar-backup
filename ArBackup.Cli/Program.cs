@@ -4,6 +4,8 @@ using ArBackup.Data.Extensions;
 using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ArBackup.Application.Mediator;
+using Ardalis.Result;
 
 namespace ArBackup;
 
@@ -28,7 +30,11 @@ internal static class Program
         switch (options.Action.ToLower())
         {
             case "upload": 
-                await mediator.Publish(new UploadFile.Command(options.Path), cancellationToken);
+                await mediator.Send<UploadFile.Command, Result<UploadFile.Response>>(new UploadFile.Command(options.Path), cancellationToken);
+                break;
+            
+            case "restore":
+                await mediator.Send<RestoreFile.Command, Result>(new RestoreFile.Command(options.File), cancellationToken);
                 break;
 
             default: throw new InvalidOperationException();

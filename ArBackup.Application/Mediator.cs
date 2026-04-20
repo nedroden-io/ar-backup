@@ -1,24 +1,27 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ArBackup.Application;
+namespace ArBackup.Application.Mediator;
 
-public interface ICommandHandler<in TCommand>
+public interface ICommandHandler<TCommand, TResponse>
 {
-    Task Handle(TCommand command, CancellationToken cancellationToken);
+    Task<TResponse> Handle(TCommand command, CancellationToken cancellationToken);
 }
 
 public interface IMediator
 {
-    Task Publish<TCommand>(TCommand command, CancellationToken cancellationToken = default);
+    Task<TResponse> Send<TCommand, TResponse>(TCommand command, CancellationToken cancellationToken = default);
 }
 
 public class Mediator(IServiceProvider serviceProvider) : IMediator
 {
-    public async Task Publish<TCommand>(TCommand command, CancellationToken cancellationToken = default)
+    public async Task<TResponse> Send<TCommand, TResponse>(TCommand command, CancellationToken cancellationToken = default)
     {
-        var handler = serviceProvider.GetService<ICommandHandler<TCommand>>();
+        var handler = serviceProvider.GetService<ICommandHandler<TCommand, TResponse>>();
         if (handler == null) throw new InvalidOperationException($"No handler registered for {typeof(TCommand).Name}");
-        await handler.Handle(command, cancellationToken);
+
+        return await handler.Handle(command, cancellationToken);
     }
 }
-

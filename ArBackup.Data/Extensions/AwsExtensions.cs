@@ -1,3 +1,4 @@
+using Amazon;
 using Amazon.Runtime.CredentialManagement;
 using Amazon.S3;
 using Amazon.SecurityToken;
@@ -15,7 +16,7 @@ public static class AwsExtensions
             var chain = new CredentialProfileStoreChain();
             if (!chain.TryGetAWSCredentials("default", out var credentials)) throw new ArgumentException("Default AWS profile not found");
 
-            services.AddScoped<IAmazonS3>(_ => new AmazonS3Client(credentials));
+            services.AddScoped<IAmazonS3>(_ => new AmazonS3Client(credentials, RegionEndpoint.EUNorth1));
 
             return services;
         }
