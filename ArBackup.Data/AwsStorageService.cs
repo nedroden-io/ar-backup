@@ -2,11 +2,15 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using ArBackup.Application.Abstractions;
+using ArBackup.Data.Extensions;
 using Ardalis.Result;
+using Microsoft.Extensions.Logging;
 
 namespace ArBackup.Data;
 
-public class AwsStorageService(IAmazonS3 amazonS3) : IStorageService
+public class AwsStorageService(
+    IAmazonS3 amazonS3,
+    ILogger<AwsStorageService> logger) : IStorageService
 {
     public async Task<Result> CreateContainerIfNotExistsAsync(string containerName, CancellationToken cancellationToken)
     {
@@ -33,19 +37,20 @@ public class AwsStorageService(IAmazonS3 amazonS3) : IStorageService
 
     public async Task<Result<string>> UploadFileAsync(string containerName, string path, CancellationToken cancellationToken)
     {
-        var objectName = path;
         var request = new PutObjectRequest()
         {
             BucketName = containerName,
-            Key = objectName,
+            Key = path.ToBase64(),
             FilePath = path
         };
         
         var response = await amazonS3.PutObjectAsync(request, cancellationToken);
         
         if (response is null || response.HttpStatusCode != HttpStatusCode.OK) return Result.Error();
+        
+        logger.LogInformation("Uploaded file {Path}", path);
 
-        return objectName;
+        return path;
     }
     
     public async Task<Result> DownloadFileAsync(string containerName, string objectName, string target, CancellationToken cancellationToken)
@@ -53,7 +58,7 @@ public class AwsStorageService(IAmazonS3 amazonS3) : IStorageService
         var request = new GetObjectRequest
         {
             BucketName = containerName,
-            Key = objectName
+            Key = objectName.ToBase64()
         };
 
         using var response = await amazonS3.GetObjectAsync(request, cancellationToken);

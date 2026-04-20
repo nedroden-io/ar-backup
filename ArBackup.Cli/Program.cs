@@ -22,25 +22,17 @@ internal static class Program
         builder.Services.AddDataLayer();
 
         using var host = builder.Build();
-        
-        Console.WriteLine("Application started");
-        await Parser.Default.ParseArguments<Options>(args)
-            .WithParsedAsync(async options => await Dispatch(options, builder.Services.BuildServiceProvider().GetRequiredService<IMediator>(), new CancellationTokenSource().Token));
+        var dispatcher = builder.Services.BuildServiceProvider().GetRequiredService<IMediator>();
+
+        var results = Parser.Default.ParseArguments<UploadOptions, RestoreOptions>(args);
+
+        await results.WithParsedAsync<UploadOptions>(async options => await UploadFileAsync(options, dispatcher, new CancellationTokenSource().Token));
+        await results.WithParsedAsync<RestoreOptions>(async options => await RestoreFileAsync(options, dispatcher, new CancellationTokenSource().Token));
     }
 
-    private static async Task Dispatch(Options options, IMediator mediator, CancellationToken cancellationToken)
-    {
-        switch (options.Action.ToLower())
-        {
-            case "upload": 
-                await mediator.Send<UploadFile.Command, Result<UploadFile.Response>>(new UploadFile.Command(options.Path), cancellationToken);
-                break;
-            
-            case "restore":
-                await mediator.Send<RestoreFile.Command, Result>(new RestoreFile.Command(options.File), cancellationToken);
-                break;
+    private static async Task RestoreFileAsync(RestoreOptions options, IMediator dispatcher, CancellationToken cancellationToken) => 
+        await dispatcher.Send<RestoreFile.Command, Result>(new RestoreFile.Command(options.File), cancellationToken);
 
-            default: throw new InvalidOperationException();
-        }
-    }
+    private static async Task UploadFileAsync(UploadOptions uploadOptions, IMediator dispatcher, CancellationToken cancellationToken) => 
+        await dispatcher.Send<UploadFile.Command, Result<UploadFile.Response>>(new UploadFile.Command(uploadOptions.Path), cancellationToken);
 }
