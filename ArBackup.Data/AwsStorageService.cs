@@ -31,13 +31,13 @@ public class AwsStorageService(IAmazonS3 amazonS3) : IStorageService
         return response is { HttpStatusCode: HttpStatusCode.OK } ? Result.Success() : Result.Error();
     }
 
-    public async Task<Result<Guid>> UploadFileAsync(string containerName, string path, CancellationToken cancellationToken)
+    public async Task<Result<string>> UploadFileAsync(string containerName, string path, CancellationToken cancellationToken)
     {
-        var objectName = Guid.NewGuid();
+        var objectName = path;
         var request = new PutObjectRequest()
         {
             BucketName = containerName,
-            Key = objectName.ToString(),
+            Key = objectName,
             FilePath = path
         };
         
@@ -48,12 +48,12 @@ public class AwsStorageService(IAmazonS3 amazonS3) : IStorageService
         return objectName;
     }
     
-    public async Task<Result> DownloadFileAsync(string containerName, Guid guid, string target, CancellationToken cancellationToken)
+    public async Task<Result> DownloadFileAsync(string containerName, string objectName, string target, CancellationToken cancellationToken)
     {
-        var request = new GetObjectRequest()
+        var request = new GetObjectRequest
         {
             BucketName = containerName,
-            Key = guid.ToString()
+            Key = objectName
         };
 
         using var response = await amazonS3.GetObjectAsync(request, cancellationToken);

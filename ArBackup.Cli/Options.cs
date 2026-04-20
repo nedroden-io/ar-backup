@@ -11,5 +11,5 @@ public class Options
     public string Path { get; set; } = string.Empty;
 
     [Option('f', "file", HelpText = "File to restore")]
-    public Guid File { get; set; } = Guid.NewGuid();
+    public string File { get; set; } = string.Empty;
 }

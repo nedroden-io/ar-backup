@@ -9,7 +9,7 @@ public static class RestoreFile
 {
     private const string ContainerName = "armonden-ar-backup";
 
-    public sealed record Command(Guid FileId);
+    public sealed record Command(string ObjectName);
 
     public sealed class Handler(
         IStorageService storageService,
@@ -17,14 +17,14 @@ public static class RestoreFile
     {
         public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
-            var result = await storageService.DownloadFileAsync(ContainerName, request.FileId, "restored.txt", cancellationToken);
+            var result = await storageService.DownloadFileAsync(ContainerName, request.ObjectName, request.ObjectName, cancellationToken);
 
             if (result.IsError())
             {
                 return Result.Error();
             }
 
-            logger.LogInformation("Restored file {FileId} to {Path}", request.FileId, "restored.txt");
+            logger.LogInformation("Restored file {FileId} to {Path}", request.ObjectName, request.ObjectName);
 
             return Result.Success();
         }

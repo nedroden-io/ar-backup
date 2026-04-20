@@ -11,7 +11,7 @@ public static class UploadFile
     
     public sealed record Command(string Path);
 
-    public sealed record Response(Guid Guid);
+    public sealed record Response(string ObjectName);
     
     public sealed class Handler(IStorageService storageService, ILogger<Handler> logger)
         : ICommandHandler<Command, Result<Response>>
@@ -20,8 +20,9 @@ public static class UploadFile
         {
             var createContainer = await storageService.CreateContainerIfNotExistsAsync(ContainerName, cancellationToken);
             if (createContainer.IsError()) return createContainer;
-
-            var result = await storageService.UploadFileAsync(ContainerName, request.Path, cancellationToken);
+            
+            var path = Path.GetFullPath(request.Path);
+            var result = await storageService.UploadFileAsync(ContainerName, path, cancellationToken);
 
             if (result.IsError()) return Result.Error();
             
